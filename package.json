@@ -1,15 +1,23 @@
 {
   "name": "lean20-to-statuspage",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A Cloudflare Worker to import latency data from Lean20 into Statuspage",
+  "private": true,
+  "main": "src/index.js",
   "scripts": {
     "dev": "NODE_ENV=development wrangler dev",
     "publish:production": "NODE_ENV=production wrangler publish -e production"
   },
-  "keywords": [],
-  "author": "Matt (IPv4) Cowley",
-  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cdnjs/lean20-to-statuspage.git"
+  },
+  "author": "cdnjs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cdnjs/lean20-to-statuspage/issues"
+  },
+  "homepage": "https://github.com/cdnjs/lean20-to-statuspage#readme",
   "dependencies": {
     "workers-sentry": "0.0.5"
   },
