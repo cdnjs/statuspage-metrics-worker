@@ -1,0 +1,21 @@
+{
+  "name": "lean20-to-statuspage",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "NODE_ENV=development wrangler dev",
+    "publish:production": "NODE_ENV=production wrangler publish -e production"
+  },
+  "keywords": [],
+  "author": "Matt (IPv4) Cowley",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "workers-sentry": "0.0.5"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "webpack": "^4.46.0",
+    "yaml-loader": "^0.6.0"
+  }
+}

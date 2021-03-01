@@ -1,0 +1,8 @@
+name = "lean20-to-statuspage"
+type = "webpack"
+account_id = "fb1f542488f2441acf88ca15f3a8390d"
+workers_dev = true
+webpack_config = "webpack.config.js"
+
+#[triggers]
+#crons = ["* * * * *"]
