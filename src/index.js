@@ -19,8 +19,8 @@ const jsonResponse = obj => new Response(JSON.stringify(obj), {
 });
 
 // Fetch a monitor from lean20
-const fetchLean20 = (monitor, region) => fetch(
-    `https://api.lean20.com/v1/reporting/ping/activity/${monitor}?limit=10&location=${region}`,
+const fetchLean20 = (monitor, region, limit, skip) => fetch(
+    `https://api.lean20.com/v1/reporting/ping/activity/${monitor}?limit=${limit}&location=${region}&skip=${skip}`,
     { headers: { access_token: process.env.LEAN20_AUTH } },
 ).then(req => req.json());
 
@@ -44,9 +44,14 @@ const averageLatency = results => {
 };
 
 // Fetch data for a monitor from lean20 and update statuspage metric
-const updateMetric = async metric => {
+const updateMetric = async (metric, limit, skip) => {
     // Get the raw data from Lean20
-    const rawData = await Promise.all(metric.lean20.regions.map(region => fetchLean20(metric.lean20.monitor, region)));
+    const rawData = await Promise.all(metric.lean20.regions.map(region => fetchLean20(
+        metric.lean20.monitor,
+        region,
+        limit,
+        skip,
+    )));
 
     // Flatten the data and group by minute
     const groupedData = rawData.flat(1).reduce((acc, res) => {
@@ -64,8 +69,8 @@ const updateMetric = async metric => {
 };
 
 // Fetch all lean20 monitors and update statuspage metrics
-const updateMetrics = sentry => Promise.all(
-    data.metrics.map(metric => updateMetric(metric).catch(err => sentry.captureException(err))),
+const updateMetrics = (sentry, limit, skip) => Promise.all(
+    data.metrics.map(metric => updateMetric(metric, limit, skip).catch(err => sentry.captureException(err))),
 );
 
 // Process all requests to the worker
@@ -80,11 +85,17 @@ const handleRequest = async ({ request, wait, sentry }) => {
 
     // Execute triggers route
     if (url.pathname === '/execute') {
+        // Get params
+        const queryLimit = parseInt(url.searchParams.get('limit'), 10);
+        const querySkip = parseInt(url.searchParams.get('skip'), 10);
+        const limit = isNaN(queryLimit) ? 10 : queryLimit;
+        const skip = isNaN(querySkip) ? 0 : querySkip;
+
         // Trigger each workflow in the background after
-        wait(updateMetrics(sentry).catch(err => sentry.captureException(err)));
+        wait(updateMetrics(sentry, limit, skip).catch(err => sentry.captureException(err)));
 
         // Return all metrics
-        return jsonResponse(data);
+        return jsonResponse({ limit, skip, data });
     }
 
     // Not found
@@ -115,7 +126,7 @@ addEventListener('scheduled', event => {
     const sentry = new WorkersSentry(event, process.env.SENTRY_DSN);
 
     // Process the event
-    return event.waitUntil(updateMetrics(sentry).catch(err => {
+    return event.waitUntil(updateMetrics(sentry, 10, 0).catch(err => {
         // Log & re-throw any errors
         console.error(err);
         sentry.captureException(err);
