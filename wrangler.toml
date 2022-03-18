@@ -1,4 +1,4 @@
-name = "lean20-to-statuspage"
+name = "statuspage-metrics-worker"
 type = "webpack"
 account_id = "eabf424c4d540c6ed66594c972c265bb"
 workers_dev = true
