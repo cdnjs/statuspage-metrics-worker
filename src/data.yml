@@ -1,22 +1,14 @@
 metrics:
   - friendly: CDN
-    lean20:
-      regions:
-        - us-east-1
-        - us-west-2
-        - eu-north-1
-      monitor: 603798b637750a052ed5bf11
+    uptimerobot:
+      monitor: 790935367
     statuspage:
       page: 1fkb7yl9sw87
       metric: v2fsbpdp1kh9
 
   - friendly: API
-    lean20:
-      regions:
-        - us-east-1
-        - us-west-2
-        - eu-north-1
-      monitor: 6037989337750ab4dfd5beff
+    uptimerobot:
+      monitor: 790935366
     statuspage:
       page: 1fkb7yl9sw87
       metric: 56gprv1q69mn
