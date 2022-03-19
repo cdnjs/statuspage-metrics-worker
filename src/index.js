@@ -20,19 +20,20 @@ const jsonResponse = obj => new Response(JSON.stringify(obj), {
 
 // Fetch a monitor from UptimeRobot
 const fetchUptimeRobot = (monitor, limit, skip) => {
-    const end = new Date();
-    end.setMinutes(end.getMinutes() - skip);
-
-    const start = new Date(end.getTime());
-    start.setMinutes(start.getMinutes() - limit);
-
     const params = new URLSearchParams();
     params.set('api_key', process.env.UPTIMEROBOT_AUTH);
     params.set('format', 'json');
     params.set('monitors', monitor);
-    params.set('response_times', '1');
-    params.set('response_times_start_date', Math.round(start.getTime() / 1000));
+    params.set('response_times', '1'); // Get response times
+    params.set('response_times_average', '1'); // Ensure we get the response time for each minute
+
+    const end = new Date();
+    end.setMinutes(end.getMinutes() - skip);
     params.set('response_times_end_date', Math.round(end.getTime() / 1000));
+
+    const start = new Date(end.getTime());
+    start.setMinutes(start.getMinutes() - limit);
+    params.set('response_times_start_date', Math.round(start.getTime() / 1000));
 
     return fetch('https://api.uptimerobot.com/v2/getMonitors', {
         method: 'POST',
