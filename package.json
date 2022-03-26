@@ -1,7 +1,7 @@
 {
-  "name": "lean20-to-statuspage",
+  "name": "statuspage-metrics-worker",
   "version": "1.0.0",
-  "description": "A Cloudflare Worker to import latency data from Lean20 into Statuspage",
+  "description": "The edge worker that syncs cdnjs metrics to statuspage",
   "private": true,
   "main": "src/index.js",
   "scripts": {
@@ -10,19 +10,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cdnjs/lean20-to-statuspage.git"
+    "url": "git+https://github.com/cdnjs/statuspage-metrics-worker.git"
   },
   "author": "cdnjs",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cdnjs/lean20-to-statuspage/issues"
+    "url": "https://github.com/cdnjs/statuspage-metrics-worker/issues"
   },
-  "homepage": "https://github.com/cdnjs/lean20-to-statuspage#readme",
+  "homepage": "https://github.com/cdnjs/statuspage-metrics-worker#readme",
   "dependencies": {
-    "workers-sentry": "0.0.5"
+    "workers-sentry": "^0.0.6"
   },
   "devDependencies": {
-    "dotenv": "^8.2.0",
+    "@cloudflare/wrangler": "^1.19.9",
+    "dotenv": "^16.0.0",
     "webpack": "^4.46.0",
     "yaml-loader": "^0.6.0"
   }

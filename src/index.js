@@ -18,13 +18,33 @@ const jsonResponse = obj => new Response(JSON.stringify(obj), {
     },
 });
 
-// Fetch a monitor from lean20
-const fetchLean20 = (monitor, region, limit, skip) => fetch(
-    `https://api.lean20.com/v1/reporting/ping/activity/${monitor}?limit=${limit}&location=${region}&skip=${skip}`,
-    { headers: { access_token: process.env.LEAN20_AUTH } },
-).then(req => req.json());
+// Fetch a monitor from UptimeRobot
+const fetchUptimeRobot = (monitor, limit, skip) => {
+    const params = new URLSearchParams();
+    params.set('api_key', process.env.UPTIMEROBOT_AUTH);
+    params.set('format', 'json');
+    params.set('monitors', monitor);
+    params.set('response_times', '1'); // Get response times
+    params.set('response_times_average', '1'); // Ensure we get the response time for each minute
 
-// Post data to statuspage
+    const end = new Date();
+    end.setMinutes(end.getMinutes() - skip);
+    params.set('response_times_end_date', Math.round(end.getTime() / 1000));
+
+    const start = new Date(end.getTime());
+    start.setMinutes(start.getMinutes() - limit);
+    params.set('response_times_start_date', Math.round(start.getTime() / 1000));
+
+    return fetch('https://api.uptimerobot.com/v2/getMonitors', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString(),
+    }).then(req => req.json());
+};
+
+// Post data to Statuspage
 const postStatuspage = (page, metric, data) => fetch(
     `https://api.statuspage.io/v1/pages/${page}/metrics/${metric}/data.json`,
     {
@@ -37,38 +57,20 @@ const postStatuspage = (page, metric, data) => fetch(
     },
 ).then(req => req.json());
 
-// Get the average up latency from a set of results
-const averageLatency = results => {
-    const upLatencies = results.filter(res => res.result === 1).map(res => res.latency);
-    return upLatencies.reduce((sum, latency) => sum + latency, 0) / upLatencies.length;
-};
-
-// Fetch data for a monitor from lean20 and update statuspage metric
+// Fetch data for a monitor from UptimeRobot and update Statuspage metric
 const updateMetric = async (metric, limit, skip) => {
-    // Get the raw data from Lean20
-    const rawData = await Promise.all(metric.lean20.regions.map(region => fetchLean20(
-        metric.lean20.monitor,
-        region,
-        limit,
-        skip,
-    )));
-
-    // Flatten the data and group by minute
-    const groupedData = rawData.flat(1).reduce((acc, res) => {
-        const date = Math.floor(new Date(res.checked_at).getTime() / 1000 / 60);
-        acc[date] = (acc[date] || []).concat(res);
-        return acc;
-    }, {});
+    // Get the raw data from UptimeRobot
+    const rawData = await fetchUptimeRobot(metric.uptimerobot.monitor, limit, skip);
 
     // Send to statuspage
-    await Promise.all(Object.entries(groupedData).map(([minute, results]) => postStatuspage(
+    await Promise.all(rawData.monitors[0].response_times.map(({ datetime, value }) => postStatuspage(
         metric.statuspage.page,
         metric.statuspage.metric,
-        { timestamp: minute * 60, value: averageLatency(results) },
+        { timestamp: Math.floor(datetime / 60) * 60, value },
     )));
 };
 
-// Fetch all lean20 monitors and update statuspage metrics
+// Fetch all UptimeRobot monitors and update Statuspage metrics
 const updateMetrics = (sentry, limit, skip) => Promise.all(
     data.metrics.map(metric => updateMetric(metric, limit, skip).catch(err => sentry.captureException(err))),
 );
